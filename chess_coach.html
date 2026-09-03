@@ -1,318 +1,151 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
+<meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Chess Coach — Learn by Playing</title>
+<title>Chess Coach — Learn the Reasoning</title>
 <style>
-  *{box-sizing:border-box} body{margin:0;font-family:system-ui,-apple-system,Segoe UI,sans-serif;background:#f3f0e8;color:#222}
-  .app{max-width:1180px;margin:auto;padding:24px}.top{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:18px}
-  h1{margin:0;font-size:28px}.sub{color:#666;margin-top:4px}
-  .layout{display:grid;grid-template-columns:minmax(420px,640px) 1fr;gap:24px;align-items:start}
-  .board-wrap{background:#fff;padding:14px;border-radius:16px;box-shadow:0 5px 24px #0001}
-  #board{display:grid;grid-template-columns:repeat(8,1fr);aspect-ratio:1;border-radius:10px;overflow:hidden}
-  .sq{position:relative;display:flex;align-items:center;justify-content:center;font-size:clamp(34px,6vw,64px);cursor:pointer;user-select:none}
-  .light{background:#f0d9b5}.dark{background:#b58863}.sq.selected{box-shadow:inset 0 0 0 5px #e8c24b}
-  .sq.legal:after{content:"";width:22%;height:22%;border-radius:50%;background:#0003;position:absolute}
-  .sq.capture:after{content:"";position:absolute;inset:7%;border:5px solid #0003;border-radius:50%}
-  .piece{z-index:2;line-height:1;text-shadow:0 2px 2px #0003}.coord{position:absolute;font-size:11px;font-weight:700;opacity:.65;bottom:3px;left:4px}
-  .dark .coord{color:#fff}.status{padding:12px 4px 2px;font-weight:700}
-  .panel{background:#fff;border-radius:16px;padding:20px;box-shadow:0 5px 24px #0001}
-  .turn{font-size:18px;font-weight:800;margin-bottom:10px}.explain{line-height:1.55;min-height:120px}
-  .card{background:#f7f5ef;border-radius:12px;padding:12px;margin-top:12px}.card h3{font-size:14px;margin:0 0 7px}
-  #alternatives{margin:0;padding-left:20px}.note{color:#666;font-size:13px}
-  button{border:0;border-radius:10px;padding:10px 14px;background:#222;color:white;font-weight:700;cursor:pointer}
-  button.secondary{background:#e7e3d8;color:#222}.buttons{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
-  .moves{font-family:ui-monospace,monospace;line-height:1.7;max-height:160px;overflow:auto}.badge{display:inline-block;padding:3px 8px;border-radius:99px;background:#e9f0df;font-size:12px}
-  @media(max-width:850px){.layout{grid-template-columns:1fr}.app{padding:12px}}
+*{box-sizing:border-box}body{margin:0;background:#f3f0e8;color:#222;font-family:system-ui,-apple-system,Segoe UI,sans-serif}.app{max-width:1280px;margin:auto;padding:22px}.top{display:flex;justify-content:space-between;gap:16px;align-items:center;margin-bottom:18px}h1{margin:0;font-size:28px}.sub{color:#666;margin-top:4px}.layout{display:grid;grid-template-columns:minmax(420px,680px) 1fr;gap:22px;align-items:start}.board-wrap,.panel{background:#fff;border-radius:16px;box-shadow:0 5px 24px #0001}.board-wrap{padding:14px}.board{display:grid;grid-template-columns:repeat(8,1fr);aspect-ratio:1;overflow:hidden;border-radius:10px}.sq{position:relative;display:flex;align-items:center;justify-content:center;font-size:clamp(34px,6vw,66px);cursor:pointer;user-select:none}.light{background:#f0d9b5}.dark{background:#b58863}.sq.selected{box-shadow:inset 0 0 0 5px #e8c24b}.sq.last{box-shadow:inset 0 0 0 4px #9ac7e8}.sq.legal:after{content:"";width:20%;height:20%;border-radius:50%;background:#0003;position:absolute}.sq.capture:after{content:"";position:absolute;inset:7%;border:5px solid #0003;border-radius:50%}.piece{z-index:2;line-height:1;text-shadow:0 2px 2px #0003}.coord{position:absolute;font-size:11px;font-weight:700;opacity:.65;bottom:3px;left:4px}.dark .coord{color:#fff}.status{padding:12px 4px 2px;font-weight:800}.panel{padding:20px}.turn{font-size:18px;font-weight:800;margin-bottom:8px}.explain{line-height:1.55;min-height:120px}.lesson{background:#eef5fb;border-left:4px solid #4e8bb7;border-radius:10px;padding:11px;margin:10px 0}.card{background:#f7f5ef;border-radius:12px;padding:12px;margin-top:12px}.card h3{font-size:14px;margin:0 0 8px}.candidate{display:grid;grid-template-columns:34px 1fr auto;gap:9px;align-items:start;padding:9px 0;border-bottom:1px solid #e2ded4}.candidate:last-child{border-bottom:0}.rank{font-weight:900}.move{font-weight:800}.why{font-size:13px;color:#555;margin-top:2px;line-height:1.4}.score{font-size:12px;font-weight:800;background:#e9f0df;border-radius:99px;padding:3px 7px}.player-row{background:#fff7d6;border-radius:9px;padding:8px;margin-top:8px}.good{color:#28753d}.warn{color:#9a6413}.bad{color:#a33b32}.buttons{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}button{border:0;border-radius:10px;padding:10px 14px;background:#222;color:#fff;font-weight:800;cursor:pointer}button.secondary{background:#e7e3d8;color:#222}.moves{font-family:ui-monospace,monospace;line-height:1.7;max-height:170px;overflow:auto}.small{font-size:12px;color:#666}.meter{height:8px;background:#ddd8ce;border-radius:99px;overflow:hidden;margin-top:7px}.meter>i{display:block;height:100%;background:#5d8f65}.concepts{display:flex;flex-wrap:wrap;gap:6px}.tag{background:#e7e3d8;border-radius:99px;padding:4px 8px;font-size:12px;font-weight:700}@media(max-width:850px){.layout{grid-template-columns:1fr}.app{padding:12px}}
 </style>
 </head>
 <body>
 <div class="app">
-  <div class="top">
-    <div><h1>♟ Chess Coach</h1><div class="sub">Play a game. Learn from every decision. No take-backs.</div></div>
-    <button class="secondary" onclick="newGame()">New Game</button>
-  </div>
+  <div class="top"><div><h1>♟ Chess Coach</h1><div class="sub">Play without take-backs. Understand why each move works.</div></div><button class="secondary" onclick="newGame()">New Game</button></div>
   <div class="layout">
-    <div class="board-wrap">
-      <div id="board"></div>
-      <div class="status" id="status">Your move — White</div>
-    </div>
+    <div class="board-wrap"><div id="board" class="board"></div><div id="status" class="status">Your move — White</div></div>
     <div class="panel">
-      <div class="turn" id="turn">Welcome</div>
-      <div class="explain" id="explain">
-        You are White. Click a piece and then a highlighted square to make your move.
-        After you move, the coach will explain your decision and show alternative moves.
-      </div>
-      <div class="card"><h3>Alternative moves</h3><ol id="alternatives"><li class="note">Your alternatives will appear here after your move.</li></ol></div>
-      <div class="card"><h3>Game moves</h3><div class="moves" id="moves">—</div></div>
+      <div id="turn" class="turn">Your turn</div>
+      <div id="explain" class="explain">Choose a move. After you commit, the coach will compare it with the strongest teaching candidates and explain the idea behind each one.</div>
+      <div class="card"><h3>Your move</h3><div id="playerMove" class="player-row small">No move yet.</div></div>
+      <div class="card"><h3>Best alternatives to consider</h3><div id="alternatives"><div class="small">Your alternatives will appear here after you move.</div></div></div>
+      <div class="card"><h3>What should I be thinking about?</h3><div id="concepts" class="concepts"><span class="tag">Checks</span><span class="tag">Captures</span><span class="tag">Threats</span><span class="tag">King safety</span></div></div>
+      <div class="card"><h3>Game moves</h3><div id="moves" class="moves">—</div></div>
       <div class="buttons"><button onclick="showHint()">Hint</button><button class="secondary" onclick="newGame()">Start over</button></div>
-      <p class="note">Teaching engine: Stockfish analyses your move and compares it with stronger candidate moves. The computer plays Black.</p>
+      <p class="small">V2 teaching engine: legal chess is handled by chess.js. Candidate rankings are deliberately explained as a beginner-oriented heuristic; the next iteration will plug Stockfish MultiPV into the same analysis interface.</p>
     </div>
   </div>
 </div>
 
-<script>
-const W={k:"♔",q:"♕",r:"♖",b:"♗",n:"♘",p:"♙"}, B={k:"♚",q:"♛",r:"♜",b:"♝",n:"♞",p:"♟"};
-let board=[],turn="w",selected=null,history=[],locked=false;
-const files="abcdefgh";
+<script type="module">
+import { Chess } from 'https://cdn.jsdelivr.net/npm/chess.js@1.4.0/+esm';
 
-function setup(){
- board=Array.from({length:8},()=>Array(8).fill(null));
- const back=["r","n","b","q","k","b","n","r"];
- for(let c=0;c<8;c++){board[0][c]={c:"b",t:back[c]};board[1][c]={c:"b",t:"p"};board[6][c]={c:"w",t:"p"};board[7][c]={c:"w",t:back[c]};}
- turn="w";selected=null;history=[];locked=false;
- document.getElementById("turn").textContent="Your turn";
- document.getElementById("explain").innerHTML="You are White. Click a piece and then a highlighted square to make your move. After you commit, the coach will explain your move and alternatives.";
- document.getElementById("alternatives").innerHTML='<li class="note">Your alternatives will appear here after your move.</li>';
- render(); updateMoves(); updateStatus();
-}
-function name(t){return({p:"pawn",n:"knight",b:"bishop",r:"rook",q:"queen",k:"king"})[t]}
-function sqName(r,c){return files[c]+(8-r)}
-function render(){
- const el=document.getElementById("board");el.innerHTML="";
- for(let r=0;r<8;r++)for(let c=0;c<8;c++){
-  const d=document.createElement("div"), key=sqName(r,c);
-  d.className="sq "+((r+c)%2?"dark":"light");
-  if(selected===key)d.classList.add("selected");
-  if(selected&&legal(selected,key))d.classList.add(board[r][c]?"capture":"legal");
-  if(board[r][c]){const x=document.createElement("span");x.className="piece";x.textContent=(board[r][c].c==="w"?W:B)[board[r][c].t];d.appendChild(x)}
-  if(c===0){const x=document.createElement("span");x.className="coord";x.textContent=8-r;d.appendChild(x)}
-  if(r===7){const x=document.createElement("span");x.className="coord";x.style.left="auto";x.style.right="4px";x.textContent=files[c];d.appendChild(x)}
-  d.onclick=()=>click(r,c);el.appendChild(d);
- }
-}
-function parse(q){return[8-Number(q[1]),files.indexOf(q[0])]}
-function inside(r,c){return r>=0&&r<8&&c>=0&&c<8}
-function pseudo(from,to){
- const [r,c]=parse(from),[R,C]=parse(to),p=board[r][c];if(!p||!inside(R,C))return false;
- if(board[R][C]?.c===p.c)return false;
- const dr=R-r,dc=C-c,ad=Math.abs(dr),ac=Math.abs(dc);
- if(p.t==="p"){
-  const dir=p.c==="w"?-1:1, start=p.c==="w"?6:1;
-  if(dc===0&&dr===dir&&!board[R][C])return true;
-  if(dc===0&&dr===2*dir&&r===start&&!board[r+dir][c]&&!board[R][C])return true;
-  return ac===1&&dr===dir&&board[R][C]?.c!==p.c;
- }
- if(p.t==="n")return (ad===2&&ac===1)||(ad===1&&ac===2);
- if(p.t==="k")return ad<=1&&ac<=1;
- if(p.t==="r"||p.t==="q")if(dr===0||dc===0)return clearPath(r,c,R,C);
- if(p.t==="b"||p.t==="q")if(ad===ac)return clearPath(r,c,R,C);
- return false;
-}
-function clearPath(r,c,R,C){
- const sr=Math.sign(R-r),sc=Math.sign(C-c);let a=r+sr,b=c+sc;
- while(a!==R||b!==C){if(board[a][b])return false;a+=sr;b+=sc}return true;
-}
-function legal(from,to){return pseudo(from,to)}
-function click(r,c){
- if(locked||turn!=="w")return;
- const q=sqName(r,c),p=board[r][c];
- if(selected&&legal(selected,q)){move(selected,q);return}
- if(p?.c==="w"){selected=q;render()}
-}
-function move(from,to){
- const [r,c]=parse(from),[R,C]=parse(to),p=board[r][c],cap=board[R][C];
- board[R][C]=p;board[r][c]=null;
- let san=notation(from,to,p,!!cap);
- history.push(san);selected=null;turn=turn==="w"?"b":"w";locked=true;
- render();updateMoves();updateStatus();
- document.getElementById("turn").textContent="Coach is reviewing your move…";
- const alts=alternatives(p,from,to);
- setTimeout(()=>showCoach(san,p,cap,alts),350);
-}
-function notation(from,to,p,cap){
- let x=p.t==="p"?"":p.t.toUpperCase();
- if(p.t==="p"&&cap)x=from[0];
- return x+(cap?"x":"")+to;
-}
-function alternatives(p,from,to){
- const [r,c]=parse(from), moves=[];
- // Generate a few educational alternatives for the same piece, favoring captures and central development.
- for(let R=0;R<8;R++)for(let C=0;C<8;C++){
-  const q=sqName(R,C);if(q===to||!pseudo(from,q))continue;
-  const target=board[R][C], score=(target?10:0)+(Math.abs(C-3.5)+Math.abs(R-3.5)<3?3:0);
-  moves.push({san:notation(from,q,p,!!target),score});
- }
- moves.sort((a,b)=>b.score-a.score);
- return moves.slice(0,3);
-}
-function showCoach(san,p,cap,alts){
- document.getElementById("explain").innerHTML=`<b>Your move: ${san}</b><br><br>${cap?"You captured a "+name(cap.t)+". ":"You moved your "+name(p.t)+". "}Now ask yourself: <b>what did this move improve, and what did it leave vulnerable?</b> There is no take-back after this lesson. The computer will now move.`;
- const ol=document.getElementById("alternatives");ol.innerHTML="";
- if(!alts.length)ol.innerHTML='<li class="note">No obvious alternative move found in this simple teaching model.</li>';
- alts.forEach((m,i)=>{const li=document.createElement("li");li.innerHTML=`<b>${m.san}</b> — ${i===0?"an active alternative to consider":"another legal alternative"}.`;ol.appendChild(li)});
- setTimeout(computerMove,800);
-}
-function computerMove(){
- if(turn!=="b"){locked=false;return}
- // Simple legal move selection: prefer captures, otherwise central pawn/piece activity.
- let ms=[];
- for(let r=0;r<8;r++)for(let c=0;c<8;c++)if(board[r][c]?.c==="b"){
-  const from=sqName(r,c);
-  for(let R=0;R<8;R++)for(let C=0;C<8;C++){const to=sqName(R,C);if(pseudo(from,to))ms.push({from,to,cap:!!board[R][C],center:Math.abs(C-3.5)+Math.abs(R-3.5)})}
- }
- if(!ms.length){endGame();return}
- ms.sort((a,b)=>(b.cap*20-b.center)-(a.cap*20-a.center));
- const m=ms[0], [r,c]=parse(m.from),[R,C]=parse(m.to),p=board[r][c];
- board[R][C]=p;board[r][c]=null;history.push(notation(m.from,m.to,p,m.cap));turn="w";locked=false;
- render();updateMoves();updateStatus();
- document.getElementById("turn").textContent="Your turn";
- document.getElementById("explain").innerHTML=`The computer played <b>${history[history.length-1]}</b>. Your turn. Look for checks, captures, threats, and undefended pieces.`;
-}
-function endGame(){locked=true;document.getElementById("turn").textContent="Game over";document.getElementById("explain").innerHTML="<b>No legal move is available.</b><br><br>This prototype has reached the end of its simplified move model."}
-function updateMoves(){document.getElementById("moves").textContent=history.length?history.map((x,i)=>(i%2===0?Math.floor(i/2+1)+". ":"")+x).join("  "):"—"}
-function updateStatus(){document.getElementById("status").textContent=turn==="w"?"Your move — White":"Computer's move — Black"}
-function showHint(){if(locked||turn!=="w")return;document.getElementById("turn").textContent="Hint";document.getElementById("explain").innerHTML="<b>Before moving:</b> scan for checks, captures and threats. Then ask what your opponent would play if you did nothing."}
-function newGame(){setup()}
-setup();
-</script>
-<script>
-const WHITE = {k:"♔",q:"♕",r:"♖",b:"♗",n:"♘",p:"♙"};
-const BLACK = {k:"♚",q:"♛",r:"♜",b:"♝",n:"♞",p:"♟"};
-let game, selected=null, locked=false, lastPlayerMove=null, engineReady=false, stockfish=null;
+const WHITE={k:'♔',q:'♕',r:'♖',b:'♗',n:'♘',p:'♙'}, BLACK={k:'♚',q:'♛',r:'♜',b:'♝',n:'♞',p:'♟'};
+const VALUE={p:100,n:320,b:330,r:500,q:900,k:20000};
+let game=new Chess(), selected=null, locked=false, lastMove=null, analysisToken=0;
 
-function newGame(){
-  game = new Chess(); selected=null; locked=false; lastPlayerMove=null;
-  document.getElementById("explain").innerHTML="You are White. Click a piece and then a highlighted square to make your move. The coach will explain every move after you commit to it.";
-  document.getElementById("alternatives").innerHTML='<li class="note">Your alternatives will appear here after your move.</li>';
-  document.getElementById("turn").textContent="Your turn";
-  render(); updateMoves(); updateStatus();
-}
+function squareName(r,c){return String.fromCharCode(97+c)+(8-r)}
+function pieceName(p){return {p:'pawn',n:'knight',b:'bishop',r:'rook',q:'queen',k:'king'}[p]}
 function render(){
-  const b=document.getElementById("board"); b.innerHTML="";
-  const board=game.board();
-  for(let r=0;r<8;r++) for(let c=0;c<8;c++){
-    const sq=String.fromCharCode(97+c)+(8-r), cell=document.createElement("div");
-    cell.className="sq "+((r+c)%2?"dark":"light"); cell.dataset.sq=sq;
-    const p=board[r][c];
-    if(p){const sp=document.createElement("span");sp.className="piece";sp.textContent=(p.color==="w"?WHITE:BLACK)[p.type];cell.appendChild(sp);}
-    if(c===0){const co=document.createElement("span");co.className="coord";co.textContent=8-r;cell.appendChild(co)}
-    if(r===7){const co=document.createElement("span");co.className="coord";co.style.left="auto";co.style.right="4px";co.textContent=String.fromCharCode(97+c);cell.appendChild(co)}
-    if(selected===sq)cell.classList.add("selected");
-    if(selected && game.moves({square:selected,verbose:true}).some(m=>m.to===sq)) {
-      cell.classList.add(game.get(sq)?"capture":"legal");
-    }
-    cell.onclick=()=>clickSquare(sq); b.appendChild(cell);
+  const root=document.getElementById('board');root.innerHTML='';const bd=game.board();
+  for(let r=0;r<8;r++)for(let c=0;c<8;c++){
+    const sq=squareName(r,c),cell=document.createElement('div');cell.className='sq '+((r+c)%2?'dark':'light');
+    if(selected===sq)cell.classList.add('selected');
+    if(lastMove&&(lastMove.from===sq||lastMove.to===sq))cell.classList.add('last');
+    if(selected&&game.moves({square:selected,verbose:true}).some(m=>m.to===sq))cell.classList.add(game.get(sq)?'capture':'legal');
+    const p=bd[r][c];if(p){const sp=document.createElement('span');sp.className='piece';sp.textContent=(p.color==='w'?WHITE:BLACK)[p.type];cell.appendChild(sp)}
+    if(c===0){const co=document.createElement('span');co.className='coord';co.textContent=8-r;cell.appendChild(co)}
+    if(r===7){const co=document.createElement('span');co.className='coord';co.style.left='auto';co.style.right='4px';co.textContent=String.fromCharCode(97+c);cell.appendChild(co)}
+    cell.onclick=()=>clickSquare(sq);root.appendChild(cell);
   }
 }
 function clickSquare(sq){
-  if(locked || game.isGameOver() || game.turn()!=="w") return;
+  if(locked||game.isGameOver()||game.turn()!=='w')return;
   const p=game.get(sq);
   if(selected){
-    const legal=game.moves({square:selected,verbose:true}).find(m=>m.to===sq);
-    if(legal){ makePlayerMove(selected,sq); return; }
+    const mv=game.moves({square:selected,verbose:true}).find(m=>m.to===sq);
+    if(mv){commitPlayerMove({from:selected,to:sq,promotion:mv.promotion});return}
   }
-  if(p && p.color==="w"){selected=sq;render()}
+  selected=p?.color==='w'?sq:null;render();
 }
-async function makePlayerMove(from,to){
-  locked=true; selected=null;
-  let move;
-  try{move=game.move({from,to,promotion:"q"});}catch(e){locked=false;return}
-  lastPlayerMove=move.san; render(); updateMoves(); updateStatus();
-  document.getElementById("turn").textContent="Coach is analysing your move…";
-  document.getElementById("explain").textContent="One moment — comparing your move with candidate alternatives.";
-  await analyseAndRespond(move);
+function commitPlayerMove(m){
+  const before=game.fen();const played=game.move(m);if(!played)return;
+  lastMove=played;selected=null;locked=true;render();updateMoves();updateStatus();
+  document.getElementById('turn').textContent='Coach is thinking…';
+  document.getElementById('explain').textContent='I am comparing your move with other legal choices. The goal is not just to tell you what is best, but to teach you what you should notice.';
+  const token=++analysisToken;
+  setTimeout(()=>{if(token===analysisToken)reviewPlayerMove(before,played)},60);
 }
-async function analyseAndRespond(move){
+
+function cloneAt(fen){return new Chess(fen)}
+function material(chess,color){let s=0;for(const row of chess.board())for(const p of row)if(p&&p.color===color)s+=VALUE[p.type];return s}
+function developmentScore(chess,color){let s=0;const back=color==='w'?1:6;for(const row of chess.board())for(const p of row)if(p&&p.color===color){if((p.type==='n'||p.type==='b')&&row.includes(p)){} if((p.type==='n'||p.type==='b')&&p.square[1]!==String(back+1))s+=6}return s}
+function centerScore(chess,color){const centers=['d4','e4','d5','e5'];let s=0;for(const sq of centers){const p=chess.get(sq);if(p?.color===color)s+=18}return s}
+function mobility(chess,color){let s=0;const f=chess.fen();if(chess.turn()!==color){const x=cloneAt(f);const parts=f.split(' ');parts[1]=color;try{x.load(parts.join(' '));}catch{}return x.moves().length}return chess.moves().length}
+function evalPosition(chess,color='w'){
+  const opp=color==='w'?'b':'w';
+  let score=(material(chess,color)-material(chess,opp));
+  score+=centerScore(chess,color)-centerScore(chess,opp);
+  score+=developmentScore(chess,color)-developmentScore(chess,opp);
+  const king=chess.get(color==='w'?'e1':'e8');if(!king)score-=200;
+  if(chess.isCheck())score+=chess.turn()===opp?35:-35;
+  score+=(mobility(chess,color)-mobility(chess,opp))*1.2;
+  return score;
+}
+function candidateFeatures(chess,m){
+  const before=cloneAt(chess.fen());const mover=m.color;const captured=m.captured;let tags=[];
+  if(captured)tags.push('wins material');
+  if(m.piece==='p'&&['d4','e4','d5','e5'].includes(m.to))tags.push('claims the centre');
+  if((m.piece==='n'||m.piece==='b')&&m.from[1]===(m.color==='w'?'1':'8'))tags.push('develops a piece');
+  if(m.piece==='k'&&(Math.abs(m.from.charCodeAt(0)-m.to.charCodeAt(0))>1))tags.push('gets the king safer');
+  if(m.san.includes('+'))tags.push('gives check');
+  const after=cloneAt(chess.fen());after.move(m);
+  const enemyMoves=after.moves({verbose:true});
+  const attacked=enemyMoves.filter(x=>x.captured).length;
+  if(attacked===0)tags.push('creates no immediate capture');
+  else tags.push('changes tactical tension');
+  if(!tags.length)tags.push('improves a piece or prepares a plan');
+  const delta=evalPosition(after,mover)-evalPosition(before,mover);
+  return {tags,delta,replyCount:enemyMoves.length};
+}
+function analyzeCandidates(fen,played){
+  const pos=new Chess(fen);const legal=pos.moves({verbose:true});const mover=pos.turn();
+  const scored=legal.map(m=>{const f=candidateFeatures(pos,m);const after=cloneAt(fen);after.move(m);let score=f.delta;
+    // One-ply opponent response: penalise moves that leave the player with a sharp tactical problem.
+    const replies=after.moves({verbose:true});let worst=Infinity;
+    for(const r of replies.slice(0,24)){const p2=cloneAt(after.fen());p2.move(r);worst=Math.min(worst,evalPosition(p2,mover))}
+    if(Number.isFinite(worst))score+=(worst-evalPosition(pos,mover))*0.22;
+    return {...m, ...f, score};
+  });
+  scored.sort((a,b)=>b.score-a.score);
+  const unique=[];const seen=new Set();for(const m of scored){if(!seen.has(m.to+m.from)){seen.add(m.to+m.from);unique.push(m)}if(unique.length>=6)break}
+  const player=scored.find(m=>m.from===played.from&&m.to===played.to&&m.promotion===played.promotion);
+  const rank=Math.max(1,scored.findIndex(m=>m.from===played.from&&m.to===played.to)+1);
+  return {mover,top:unique.slice(0,5),player,rank,total:scored.length};
+}
+function reviewPlayerMove(before,played){
+  const a=analyzeCandidates(before,played);const p=a.player;const rank=a.rank;const best=a.top[0];
+  const grade=rank===1?'Excellent':rank<=3?'Good choice':rank<=7?'Playable':'Needs work';
+  const tone=rank===1?'good':rank<=3?'good':rank<=7?'warn':'bad';
+  document.getElementById('turn').textContent=`Your move: ${played.san} · Rank ${rank} / ${a.total}`;
+  document.getElementById('playerMove').innerHTML=`<span class="${tone}"><b>${grade}</b> — ${played.san}</span><br><span class="small">Rank is based on this version's teaching evaluation, not an official Elo judgement.</span>`;
+  let opening=`You played <b>${played.san}</b>. `;
+  if(rank===1)opening+='This is currently the coach\'s top-ranked choice. ';else opening+=`The coach prefers <b>${best.san}</b> in this position. `;
+  opening+=reasonFor(best,played,a);
+  document.getElementById('explain').innerHTML=`<div class="lesson">${opening}</div><b>The habit to build:</b> before every move, ask <b>“What is my opponent threatening, and what does my move improve?”</b>`;
+  const box=document.getElementById('alternatives');box.innerHTML='';
+  a.top.forEach((m,i)=>{const row=document.createElement('div');row.className='candidate';row.innerHTML=`<div class="rank">#${i+1}</div><div><div class="move">${m.san}${m.from===played.from&&m.to===played.to?' <span class="small">(your move)</span>':''}</div><div class="why">${whyMove(m,a.mover)}</div></div><div class="score">${Math.round(m.score)}</div>`;box.appendChild(row)});
+  document.getElementById('concepts').innerHTML=conceptTags(a.top[0],played).map(x=>`<span class="tag">${x}</span>`).join('');
+  setTimeout(computerMove,650);
+}
+function reasonFor(best,played,a){if(best.from===played.from&&best.to===played.to)return `It improves the position while matching the basic principle of ${whyMove(best,a.mover).toLowerCase()}.`;return `The alternative ${best.san} is attractive because it ${whyMove(best,a.mover).toLowerCase()}. Your move is not automatically a blunder—this is a learning comparison.`}
+function whyMove(m,color){let x=[];if(m.san.includes('#'))x.push('checkmates');else if(m.san.includes('+'))x.push('gives check');if(m.captured)x.push(`wins a ${pieceName(m.captured)} for material`);if(m.piece==='p'&&['d4','e4','d5','e5'].includes(m.to))x.push('claims central space');if((m.piece==='n'||m.piece==='b')&&m.from[1]===(color==='w'?'1':'8'))x.push('develops a minor piece');if(!x.length)x.push('improves activity and keeps options open');return x.join(', ')}
+function conceptTags(best,played){let x=[];if(best.san.includes('+')||played.san.includes('+'))x.push('Checks');if(best.captured||played.captured)x.push('Captures');if(best.piece==='p'&&['d4','e4','d5','e5'].includes(best.to))x.push('Centre');if(best.piece==='n'||best.piece==='b')x.push('Development');x.push('Opponent threats');return [...new Set(x)].slice(0,5)}
+function computerMove(){
+  if(game.turn()!=='b'||game.isGameOver()){locked=false;updateStatus();return}
+  const moves=game.moves({verbose:true});let best=null,bestScore=-Infinity;
+  for(const m of moves){const before=game.fen();game.move(m);let s=evalPosition(game,'b');const replies=game.moves({verbose:true});if(replies.length)s-=Math.max(...replies.slice(0,12).map(r=>{game.move(r);const q=evalPosition(game,'b');game.undo();return -q}))*0.03;game.undo();if(s>bestScore){bestScore=s;best=m}}
+  const played=game.move(best);lastMove=played;locked=false;render();updateMoves();updateStatus();
   if(game.isGameOver()){finishGame();return}
-  const alternatives = await getEngineCandidates(game.fen(),3);
-  const best = alternatives[0];
-  let verdict="";
-  if(best && best.san===move.san) verdict="Excellent choice. Your move is the engine's top candidate.";
-  else if(best) verdict=`Your move was ${describeMove(move)}. A stronger alternative was ${best.san}.`;
-  else verdict=`Your move was ${describeMove(move)}.`;
-  document.getElementById("explain").innerHTML=verdict+"<br><br>"+teachingExplanation(move,best);
-  const ol=document.getElementById("alternatives");ol.innerHTML="";
-  alternatives.slice(0,3).forEach((m,i)=>{
-    const li=document.createElement("li");li.innerHTML=`<b>${m.san}</b> — ${candidateReason(m,i)} <span class="note">(${m.score})</span>`;ol.appendChild(li);
-  });
-  // Important design rule: once alternatives are shown, the move cannot be reverted.
-  locked=true;
-  setTimeout(computerMove,700);
+  document.getElementById('turn').textContent='Your turn';document.getElementById('explain').innerHTML=`The coach played <b>${played.san}</b>. <div class="lesson"><b>Your thinking checklist:</b> First look for checks and captures. Then ask what your opponent threatens. Finally choose a move that improves your worst-placed piece.</div>`;
+  document.getElementById('playerMove').textContent='Ready for your next decision.';
+  document.getElementById('alternatives').innerHTML='<div class="small">Make your next move to receive a fresh ranking and explanation.</div>';
 }
-function describeMove(m){
-  if(m.captured) return `You captured ${pieceName(m.captured)}.`;
-  if(m.san.includes("O-O")) return "You castled, moving your king toward safety.";
-  if(m.piece==="p") return "You advanced a pawn, influencing the position.";
-  return `You developed/moved your ${pieceName(m.piece)}.`;
-}
-function teachingExplanation(m,best){
-  if(!best) return "The position has reached its conclusion.";
-  if(best.san===m.san) return "This move follows a sound principle for the position. Look at what your move attacks, what it leaves undefended, and what your opponent can do next.";
-  return `The key lesson is to compare your move with ${best.san}: ask which pieces become more active, which threats are created, and whether your king and valuable pieces remain safe.`;
-}
-function candidateReason(m,i){
-  if(i===0)return "best practical choice in this position";
-  if(m.captured)return "an active alternative that wins material or improves the position";
-  return "a playable alternative worth considering";
-}
-function pieceName(p){return ({p:"pawn",n:"knight",b:"bishop",r:"rook",q:"queen",k:"king"})[p]}
-function updateMoves(){document.getElementById("moves").textContent=game.history().length?game.history().join("  "):"—"}
-function updateStatus(){
-  const s=document.getElementById("status");
-  if(game.isCheckmate())s.textContent="Checkmate.";
-  else if(game.isDraw())s.textContent="Draw.";
-  else if(game.isCheck())s.textContent=(game.turn()==="w"?"Your":"Computer's")+" king is in check.";
-  else s.textContent=game.turn()==="w"?"Your move — White":"Computer's move — Black";
-}
-function finishGame(){
-  locked=true;updateStatus();
-  let msg=game.isCheckmate()?"Checkmate!":"The game is drawn.";
-  document.getElementById("turn").textContent="Game over";
-  document.getElementById("explain").innerHTML="<b>"+msg+"</b><br><br>"+(game.isCheckmate()?"Review the moves above and identify the moment when the position changed decisively.":"A draw is also a lesson: look for where neither side could make enough progress.");
-}
-async function computerMove(){
-  if(game.isGameOver()||game.turn()!=="b"){locked=false;return}
-  document.getElementById("turn").textContent="Computer is thinking…";
-  const candidates=await getEngineCandidates(game.fen(),1);
-  if(!candidates.length){finishGame();return}
-  const uci=candidates[0].uci;
-  const move=game.move({from:uci.slice(0,2),to:uci.slice(2,4),promotion:uci[4]||"q"});
-  render();updateMoves();updateStatus();
-  document.getElementById("turn").textContent="Your turn";
-  document.getElementById("explain").innerHTML=`The computer played <b>${move.san}</b>. Now decide your next move.`;
-  locked=false;
-}
-function showHint(){
-  if(locked||game.turn()!=="w")return;
-  document.getElementById("turn").textContent="Hint";
-  document.getElementById("explain").innerHTML="Look first for <b>checks, captures and threats</b>. Then ask: what is my opponent threatening? Which of my pieces is least active?";
-}
-function getEngineCandidates(fen,count){
-  return new Promise(resolve=>{
-    if(!stockfish){resolve(fallbackCandidates(count));return}
-    let done=false, lines=[];
-    const finish=()=>{if(done)return;done=true;stockfish.onmessage=null;resolve(lines.slice(0,count))};
-    stockfish.onmessage=e=>{
-      const t=e.data||"";
-      if(t.startsWith("info") && t.includes(" pv ")){
-        const pv=t.split(" pv ")[1].trim().split(" ");
-        const uci=pv[0]; if(!uci)return;
-        const san=uciToSan(fen,uci);
-        const score=(t.match(/score (cp|mate) (-?\\d+)/)||[]).slice(1);
-        const scoreText=score.length?(score[0]==="mate"?"mate "+score[1]:(Number(score[1])/100).toFixed(2)):"?";
-        if(!lines.some(x=>x.uci===uci))lines.push({uci,san,score:scoreText});
-      }
-      if(t.startsWith("bestmove")) finish();
-    };
-    stockfish.postMessage("position fen "+fen);
-    stockfish.postMessage("setoption name MultiPV value "+Math.max(1,count));
-    stockfish.postMessage("go depth 12");
-    setTimeout(finish,4500);
-  });
-}
-function uciToSan(fen,uci){
-  try{const g=new Chess(fen);const m=g.move({from:uci.slice(0,2),to:uci.slice(2,4),promotion:uci[4]||"q"});return m?m.san:uci}catch(e){return uci}
-}
-function fallbackCandidates(count){
-  const ms=game.moves({verbose:true});
-  return ms.slice(0,Math.min(count,ms.length)).map(m=>({uci:m.from+m.to+(m.promotion||""),san:m.san,score:"?"}));
-}
-try{
-  stockfish=new Worker("https://cdn.jsdelivr.net/npm/stockfish@17.1.0/src/stockfish-17.1.js");
-  stockfish.postMessage("uci");
-}catch(e){stockfish=null}
+function updateMoves(){const h=game.history();document.getElementById('moves').textContent=h.length?h.map((x,i)=>(i%2===0?Math.floor(i/2)+1+'. ':'')+x).join('  '):'—'}
+function updateStatus(){document.getElementById('status').textContent=game.isGameOver()?'Game over':game.turn()==='w'?'Your move — White':'Coach is moving — Black'}
+function finishGame(){locked=true;document.getElementById('turn').textContent=game.isCheckmate()?'Checkmate':game.isDraw()?'Draw':'Game over';document.getElementById('explain').innerHTML=game.isCheckmate()?'<b>Checkmate.</b> Now review the decisions you made rather than only the final result.':'<b>The game has ended.</b> This is a good point to review your move rankings and recurring ideas.'}
+function showHint(){if(locked||game.turn()!=='w')return;const moves=game.moves({verbose:true});const best=moves.map(m=>{const x=cloneAt(game.fen());x.move(m);return {m,s:evalPosition(x,'w')}}).sort((a,b)=>b.s-a.s)[0];document.getElementById('turn').textContent='Hint';document.getElementById('explain').innerHTML=`<div class="lesson"><b>Try to find a move like ${best.m.san}.</b><br>Don't play it immediately. First identify what it accomplishes: ${whyMove(best.m,'w')}.</div>`}
+function newGame(){analysisToken++;game=new Chess();selected=null;locked=false;lastMove=null;document.getElementById('turn').textContent='Your turn';document.getElementById('explain').textContent='Choose a move. After you commit, the coach will compare it with the strongest teaching candidates and explain the idea behind each one.';document.getElementById('playerMove').textContent='No move yet.';document.getElementById('alternatives').innerHTML='<div class="small">Your alternatives will appear here after you move.</div>';document.getElementById('concepts').innerHTML='<span class="tag">Checks</span><span class="tag">Captures</span><span class="tag">Threats</span><span class="tag">King safety</span>';render();updateMoves();updateStatus()}
+
 newGame();
 </script>
 </body>
